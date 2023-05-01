@@ -1,4 +1,5 @@
 import json
+import ssl
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from threading import Thread
 
@@ -70,6 +71,10 @@ def _run_server(port: int, share: bool=False):
     address = '0.0.0.0' if shared.args.listen else '127.0.0.1'
 
     server = ThreadingHTTPServer((address, port), Handler)
+    sslctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    sslctx.check_hostname = False # If set to True, only the hostname that matches the certificate will be accepted
+    sslctx.load_cert_chain(certfile='cert.pem', keyfile="key.pem")
+    server.socket = sslctx.wrap_socket(server.socket, server_side=True)
 
     def on_start(public_url: str):
         print(f'Starting non-streaming server at public url {public_url}/api')
