@@ -124,7 +124,6 @@ def _run_server(port: int, share: bool=False):
     address = '0.0.0.0' if shared.args.listen else '127.0.0.1'
     server = ThreadingHTTPServer((address, port), Handler)
     sslctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-    sslctx.check_hostname = False
     sslctx.load_cert_chain(certfile='cert.pem', keyfile="key.pem")
     server.socket = sslctx.wrap_socket(server.socket, server_side=True)
 
