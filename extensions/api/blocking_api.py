@@ -23,7 +23,7 @@ class GenerateHandler:
     def default_parameters():
         return {
             'max_new_tokens': 1000,
-            'do_sample': False,
+            'do_sample': True,
             'temperature': 0.1,
             'top_p': 0.1,
             'typical_p': 1,
@@ -42,7 +42,7 @@ class GenerateHandler:
             'skip_special_tokens': True,
             'encoder_repetition_penalty':1,
             'custom_stopping_strings': '',  
-            'stopping_strings': ["Assistant:"]
+            'stopping_strings': ["Human:"]
         }
 
     @staticmethod
@@ -50,15 +50,30 @@ class GenerateHandler:
             # Remove the prompt from the response_text
             response_text = response_text.replace(prompt, '')
 
-            # Now find and remove the start of 'Output:'
-            if response_text.startswith('Output:'):
-                response_text = response_text[len('Output:'):].strip()
+            # Define identifiers
+            assistant_identifier = '### Assistant:'
+            human_identifier = ['### Human:', '### Human']
 
-            # And finally remove trailing '### Assistant'
-            if response_text.endswith('### Assistant'):
-                response_text = response_text[:response_text.rfind('### Assistant')].strip()
+            # Split the text by line breaks
+            lines = response_text.split('\n')
 
-            return response_text
+            # Initialize an empty list for the processed lines
+            processed_lines = []
+
+            # Iterate over each line
+            for line in lines:
+                # If the line starts with the assistant identifier, remove it
+                if line.startswith(assistant_identifier):
+                    line = line[len(assistant_identifier):].strip()
+                # If the line starts with a human identifier, skip it
+                elif any(line.startswith(identifier) for identifier in human_identifier):
+                    continue
+
+                # Append the processed line to the list
+                processed_lines.append(line)
+
+            # Join the processed lines back together and return the result
+            return '\n'.join(processed_lines)
 
     @staticmethod
     def handle_request(handler, body):
